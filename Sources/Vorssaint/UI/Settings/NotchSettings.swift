@@ -89,6 +89,7 @@ struct NotchSettings: View {
     @AppStorage(DefaultsKey.notchCapsuleFitDrop) private var capsuleFitDrop = 0.0
     @AppStorage(DefaultsKey.notchHapticFeedback) private var hapticFeedback = true
     @AppStorage(DefaultsKey.notchTranslucentBackground) private var translucentBackground = false
+    @AppStorage(DefaultsKey.notchCustomBackgroundEnabled) private var customBackground = false
     @AppStorage(DefaultsKey.notchLiquidGlassEnabled) private var liquidGlass = false
     @AppStorage(DefaultsKey.notchShelf) private var shelfWindow = true
     @AppStorage(DefaultsKey.notchDragReveal) private var dragReveal = true
@@ -226,6 +227,7 @@ struct NotchSettings: View {
             NotchLayoutEditor(configuration: access, size: $size, width: $customWidth, height: $customHeight) {
                 selectedModule = .controls; tab = .content
             }
+            NotchAppearanceSettings()
             SettingsCard(title: text.size) {
                 HStack(spacing: 10) {
                     choice(text.compact, symbol: "rectangle.compress.vertical", selected: size == NotchSize.compact.rawValue) { size = NotchSize.compact.rawValue }
@@ -246,7 +248,7 @@ struct NotchSettings: View {
                 switchRow("drop.halffull", text.translucentBackground,
                           caption: liquidGlassIsOn ? text.translucentBackgroundGlassHint : text.translucentBackgroundHint,
                           isOn: liquidGlassIsOn ? .constant(true) : $translucentBackground)
-                    .disabled(liquidGlassIsOn)
+                    .disabled(liquidGlassIsOn || customBackground)
             }
             // Only a display without a camera can float the island.
             if NotchSupport.hasDisplayWithoutNotch {
@@ -303,6 +305,7 @@ struct NotchSettings: View {
     /// Reduce Transparency keeps it black, so the switch then shows the saved
     /// choice as it does with the glass off.
     private var liquidGlassIsOn: Bool {
+        if customBackground { return false }
 #if compiler(>=6.2)
         if #available(macOS 26, *) { return liquidGlass && !reduceTransparency }
 #endif
@@ -1077,7 +1080,7 @@ private struct NotchSilhouetteSample: View {
             }
             .padding(.horizontal, 14)
             .frame(height: geometry.menuBarHeight)
-            NotchShape.island(height: island.height, geometry: geometry).fill(.black)
+            NotchBackgroundFill().clipShape(NotchShape.island(height: island.height, geometry: geometry))
                 .frame(width: island.width, height: island.height)
         }
         .frame(width: 400, height: 48, alignment: .top)

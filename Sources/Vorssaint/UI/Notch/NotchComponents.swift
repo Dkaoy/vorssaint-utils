@@ -540,10 +540,12 @@ struct NotchSurfaceBackground: View {
     @ObservedObject var presentation: NotchBackdropPresentation
     let glass: Bool
     var translucent = false
+    @AppStorage(DefaultsKey.notchCustomBackgroundEnabled) private var customBackground = false
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     private var offersGlass: Bool {
+        if customBackground { return false }
 #if compiler(>=6.2)
         if #available(macOS 26, *) { return glass && !reduceTransparency }
 #endif
@@ -552,7 +554,7 @@ struct NotchSurfaceBackground: View {
 
     private var showsGlass: Bool { offersGlass && presentation.usesGlass }
     private var showsTranslucent: Bool {
-        translucent && !offersGlass && presentation.usesGlass && !reduceTransparency
+        !customBackground && translucent && !offersGlass && presentation.usesGlass && !reduceTransparency
     }
 
     var body: some View {
@@ -561,7 +563,7 @@ struct NotchSurfaceBackground: View {
             // the glass has opened, and the glass exists only while that
             // black lets it show, so the window's resizes at either end of a
             // transition happen in plain black.
-            Color.black.opacity(showsGlass || showsTranslucent ? presentation.restingBlack : 1)
+            NotchBackgroundFill().opacity(showsGlass || showsTranslucent ? presentation.restingBlack : 1)
 #if compiler(>=6.2)
             if #available(macOS 26, *), showsGlass, presentation.restingBlack < 1 {
                 let shape = NotchBackdropShape(contour: presentation.contour)

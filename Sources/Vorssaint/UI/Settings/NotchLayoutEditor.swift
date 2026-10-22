@@ -15,6 +15,8 @@ struct NotchLayoutEditor: View {
     /// dims the button or brings it back.
     @ObservedObject private var features = FeatureRuntime.shared
     @AppStorage(DefaultsKey.notchOutlineEnabled) private var outlineEnabled = false
+    @AppStorage(DefaultsKey.notchCustomBackgroundEnabled) private var customBackground = false
+    @AppStorage(DefaultsKey.notchBackgroundColor) private var backgroundHex = NotchAppearance.defaultHex
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var addingSide: NotchQuickAccessSide?
     @State private var editingID: UUID?
@@ -50,7 +52,7 @@ struct NotchLayoutEditor: View {
                     islandPreview
                         .background {
                             let shape = NotchShape.island(height: actualHeight, geometry: previewGeometry)
-                            shape.fill(.black)
+                            shape.fill(NotchAppearance.color(enabled: customBackground, hex: backgroundHex))
                                 .overlay {
                                     // A capsule's outline goes all the way round.
                                     if outlineEnabled {
@@ -210,7 +212,7 @@ struct NotchLayoutEditor: View {
         return Button { editingName = button.label; editingID = button.id } label: {
             Image(systemName: button.action?.symbol ?? "questionmark")
                 .font(.system(size: 12, weight: .medium)).foregroundStyle(.white)
-                .frame(width: 30, height: 30).background(.black, in: Circle())
+                .frame(width: 30, height: 30).background(NotchAppearance.color(enabled: customBackground, hex: backgroundHex), in: Circle())
                 .overlay { Circle().strokeBorder(editingID == button.id ? Color.accentColor : .white.opacity(0.2), lineWidth: 1.5) }
                 .shadow(color: .black.opacity(0.12), radius: 3, y: 2)
                 .opacity(hidden ? 0.4 : 1)

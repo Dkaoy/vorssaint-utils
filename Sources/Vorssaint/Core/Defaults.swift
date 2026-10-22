@@ -823,6 +823,8 @@ enum DefaultsKey {
     static let notchCameraFitHeight = "notchCameraFitHeight"
     static let notchHapticFeedback = "notchHapticFeedback"
     static let notchTranslucentBackground = "notchTranslucentBackground"
+    static let notchCustomBackgroundEnabled = "notchCustomBackgroundEnabled"
+    static let notchBackgroundColor = "notchBackgroundColor"
     static let notchShelf = "notchShelf"
     static let notchDragReveal = "notchDragReveal"
     static let notchCaptureControls = "notchCaptureControls"
@@ -1427,6 +1429,8 @@ enum Defaults {
         DefaultsKey.notchCameraFitHeight: 0.0,
         DefaultsKey.notchHapticFeedback: true,
         DefaultsKey.notchTranslucentBackground: false,
+        DefaultsKey.notchCustomBackgroundEnabled: false,
+        DefaultsKey.notchBackgroundColor: NotchAppearance.defaultHex,
         DefaultsKey.notchShelf: true,
         DefaultsKey.notchDragReveal: true,
         DefaultsKey.notchCaptureControls: true,

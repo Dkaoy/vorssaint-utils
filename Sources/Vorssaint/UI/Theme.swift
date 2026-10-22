@@ -185,7 +185,8 @@ private struct PanelGlassSurface: View {
         // content, the panel is a card inside the balloon instead; see
         // PanelSurface.popoverHostsFullSizeContent.
         if notchPresentation {
-            Rectangle().fill(notchGlassSurface ? Color.clear : .black)
+            if notchGlassSurface { Color.clear }
+            else { NotchBackgroundFill() }
         } else if PanelSurface.popoverHostsFullSizeContent {
             surface.ignoresSafeArea()
         } else {

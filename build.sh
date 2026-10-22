@@ -404,6 +404,7 @@ if (( TEST )); then
         Sources/Vorssaint/Services/Recorder/RecorderBlurRegion.swift
         Sources/Vorssaint/Services/Recorder/RecorderEditDocument.swift
         Sources/Vorssaint/Core/AppInfo.swift
+        Sources/Vorssaint/Core/NotchAppearanceSupport.swift
         Sources/Vorssaint/Core/GlobalShortcut.swift
         Sources/Vorssaint/Core/SymbolicHotKeys.swift
         Sources/Vorssaint/Services/SystemShortcutTakeoverSupport.swift

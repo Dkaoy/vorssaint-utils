@@ -25,9 +25,14 @@ run_hosts() {
         Tests/Fork/HostsServiceTests.swift -o "$OUTPUT/hosts-service-tests"
     "$OUTPUT/hosts-service-tests"
 }
+run_appearance() {
+    swiftc "${FLAGS[@]}" Sources/Vorssaint/Core/NotchAppearanceSupport.swift Tests/Fork/NotchAppearanceTests.swift -o "$OUTPUT/notch-appearance-tests"
+    "$OUTPUT/notch-appearance-tests"
+}
 case "${1:-all}" in
     translation) run_translation ;;
     hosts) run_hosts ;;
-    all) run_translation; run_hosts ;;
-    *) print -u2 'Usage: zsh Tools/test-fork-features.sh [all|translation|hosts]'; exit 2 ;;
+    appearance) run_appearance ;;
+    all) run_translation; run_hosts; run_appearance ;;
+    *) print -u2 'Usage: zsh Tools/test-fork-features.sh [all|translation|hosts|appearance]'; exit 2 ;;
 esac

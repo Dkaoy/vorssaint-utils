@@ -70,11 +70,14 @@ struct NotchQuickAccessView: View {
     @ObservedObject private var microphone = MicMuteService.shared
     @ObservedObject private var recorder = ScreenRecorderService.shared
     @AppStorage(DefaultsKey.notchLiquidGlassEnabled) private var glass = false
+    @AppStorage(DefaultsKey.notchCustomBackgroundEnabled) private var customBackground = false
+    @AppStorage(DefaultsKey.notchBackgroundColor) private var backgroundHex = NotchAppearance.defaultHex
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
 
     /// Increase Contrast keeps the buttons solid beside a lip that barely opens.
     private var followsGlass: Bool {
+        if customBackground { return false }
 #if compiler(>=6.2)
         if #available(macOS 26, *) { return glass && !reduceTransparency && contrast != .increased }
 #endif
@@ -146,7 +149,8 @@ struct NotchQuickAccessView: View {
                 // the window server does not count as the window's own pixels:
                 // a faint fill keeps the whole circle from passing clicks to
                 // the app behind, not just the glyph.
-                .background(followsGlass ? Color.black.opacity(0.02) : Color.black, in: Circle())
+                .background(followsGlass ? Color.black.opacity(0.02)
+                            : NotchAppearance.color(enabled: customBackground, hex: backgroundHex), in: Circle())
                 .overlay {
                     Circle().strokeBorder(.white.opacity(selected || contrast == .increased ? 0.6 : 0.16), lineWidth: 0.75)
                         .allowsHitTesting(false)
@@ -165,13 +169,15 @@ struct NotchQuickAccessView: View {
 private struct NotchQuickAccessDrops: View {
     let placements: [NotchQuickAccessPlacement]
     let progress: CGFloat
+    @AppStorage(DefaultsKey.notchCustomBackgroundEnabled) private var customBackground = false
+    @AppStorage(DefaultsKey.notchBackgroundColor) private var backgroundHex = NotchAppearance.defaultHex
 
     var body: some View {
         ZStack {
             ForEach(placements) { placement in
                 NotchQuickAccessDrop(progress: progress, index: placement.index, edge: placement.edge,
                                      top: placement.top, side: placement.side)
-                    .fill(.black)
+                    .fill(NotchAppearance.color(enabled: customBackground, hex: backgroundHex))
             }
         }
         .allowsHitTesting(false)

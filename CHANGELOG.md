@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.4.5] - 2026-10-22
+
+### Added
+- Dynamic Island background colors in Settings → Dynamic Island → Layout: dark presets, custom color picker and restore default, with live background and preview updates. Bright colors are darkened for white-text contrast; custom colors use an opaque surface and preserve the saved transparency and glass choices.
+
 ## [3.4.4] - 2026-10-22
 
 ### Added

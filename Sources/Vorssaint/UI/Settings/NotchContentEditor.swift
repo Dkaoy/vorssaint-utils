@@ -13,6 +13,8 @@ struct NotchIslandPreview: View {
     @ObservedObject private var notch = NotchService.shared
     @ObservedObject private var l10n = L10n.shared
     @AppStorage(DefaultsKey.notchLiquidGlassEnabled) private var glass = false
+    @AppStorage(DefaultsKey.notchCustomBackgroundEnabled) private var customBackground = false
+    @AppStorage(DefaultsKey.notchBackgroundColor) private var backgroundHex = NotchAppearance.defaultHex
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var monitoring = false
@@ -91,6 +93,7 @@ struct NotchIslandPreview: View {
     }
 
     private var glassSurface: Bool {
+        if customBackground { return false }
 #if compiler(>=6.2)
         if #available(macOS 26, *) { return glass && !reduceTransparency }
 #endif
@@ -129,7 +132,8 @@ struct NotchIslandPreview: View {
             .padding(.bottom, NotchLayout.bottomInset)
             .frame(width: size.width, height: size.height, alignment: .top)
             .background {
-                NotchShape.island(height: size.height, geometry: geometry).fill(.black)
+                NotchShape.island(height: size.height, geometry: geometry)
+                    .fill(NotchAppearance.color(enabled: customBackground, hex: backgroundHex))
             }
             .foregroundStyle(.white)
             .tint(.white)

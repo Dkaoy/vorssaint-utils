@@ -11,6 +11,7 @@ struct NotchView: View {
     @ObservedObject private var launcher = QuickLauncherService.shared
     @ObservedObject private var updates = UpdateService.shared
     @AppStorage(DefaultsKey.notchLiquidGlassEnabled) private var glass = false
+    @AppStorage(DefaultsKey.notchCustomBackgroundEnabled) private var customBackground = false
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -64,6 +65,7 @@ struct NotchView: View {
     }
 
     private var usesGlassSurface: Bool {
+        if customBackground { return false }
 #if compiler(>=6.2)
         if #available(macOS 26, *), glass, !reduceTransparency {
             // Resting wings, compact activities and small status notices keep
