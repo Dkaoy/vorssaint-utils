@@ -214,34 +214,28 @@ struct HostsCurrentPreview: View {
         if values.last == "" { values.removeLast() }
         return values
     }
-    private var sectionTitle: String {
-        switch section {
-        case 1: return s[.unmanagedContent]
-        case 2: return s[.managedContent]
-        default: return s[.allContent]
-        }
-    }
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
                 Image(systemName: "doc.text.magnifyingglass")
-                    .font(.title2).foregroundStyle(Color.accentColor)
-                    .frame(width: 46, height: 46)
-                    .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(s[.viewCurrent]).font(.title3.bold())
-                    Label("/etc/hosts", systemImage: "lock.fill")
-                        .font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary)
-                }
-                Spacer()
-                Label(s[.readOnlyShort], systemImage: "lock.shield")
-                    .font(.caption.weight(.medium))
                     .foregroundStyle(Color.accentColor)
-                    .padding(.horizontal, 11).padding(.vertical, 6)
-                    .background(Color.accentColor.opacity(0.09), in: Capsule())
+                Text(s[.viewCurrent]).font(.headline)
+                Text("/etc/hosts")
+                    .font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary)
+                Label(s[.readOnlyShort], systemImage: "lock.fill")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .help(s[.currentCaption])
+                Spacer(minLength: 12)
+                Button { reload() } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .accessibilityLabel(s[.refresh])
+                }
+                .buttonStyle(.borderless)
+                .help(s[.refresh])
+                .disabled(service.busy)
+                Button(s[.close]) { dismiss() }
+                    .buttonStyle(.bordered).keyboardShortcut(.cancelAction)
             }
-            Text(s[.currentCaption]).font(.callout).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
             if readFailed {
                 Label(s[.readFailure], systemImage: "exclamationmark.triangle.fill")
                     .font(.callout).foregroundStyle(.orange)
@@ -252,44 +246,40 @@ struct HostsCurrentPreview: View {
                     .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
             }
             VStack(spacing: 0) {
-                if snapshot?.document != nil {
-                    Picker(s[.viewCurrent], selection: $section) {
-                        Text(s[.allContent]).tag(0)
-                        Text(s[.unmanagedContent]).tag(1)
-                        Text(s[.managedContent]).tag(2)
+                HStack(spacing: 12) {
+                    if snapshot?.document != nil {
+                        Picker(s[.viewCurrent], selection: $section) {
+                            Text(s[.allContent]).tag(0)
+                            Text(s[.unmanagedContent]).tag(1)
+                            Text(s[.managedContent]).tag(2)
+                        }
+                        .pickerStyle(.segmented).labelsHidden()
+                        .fixedSize()
                     }
-                    .pickerStyle(.segmented).labelsHidden()
-                    .padding(12).frame(maxWidth: .infinity)
-                    .background(Color(nsColor: .controlBackgroundColor))
-                    Divider()
+                    Spacer(minLength: 8)
+                    Text("\(lines.count) \(s[.lineCount])")
+                        .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
                 }
-                HStack(spacing: 8) {
-                    Circle().fill(readFailed ? Color.orange : Color.accentColor).frame(width: 6, height: 6)
-                    Text(sectionTitle).font(.caption.weight(.medium))
-                    Spacer()
-                    Text("\(lines.count) \(s[.lineCount])").font(.caption.monospacedDigit())
-                }
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 16).padding(.vertical, 10)
-                .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+                .padding(.horizontal, 10).padding(.vertical, 7)
+                .background(Color(nsColor: .controlBackgroundColor))
                 Divider()
                 GeometryReader { geometry in
                     ScrollView([.vertical, .horizontal]) {
-                        HStack(alignment: .top, spacing: 16) {
+                        HStack(alignment: .top, spacing: 10) {
                             Text(lines.indices.map { String($0 + 1) }.joined(separator: "\n"))
                                 .foregroundStyle(.tertiary)
                                 .textSelection(.disabled)
                                 .frame(minWidth: 24, alignment: .trailing)
-                                .padding(.trailing, 14)
+                                .padding(.trailing, 10)
                                 .overlay(alignment: .trailing) {
                                     Rectangle().fill(Color.secondary.opacity(0.12)).frame(width: 1)
                                 }
-                            Text(content.isEmpty ? "—" : content.replacingOccurrences(of: "\t", with: "    "))
+                            Text(HostsPreviewSyntax.highlight(content.isEmpty ? "—" : content.replacingOccurrences(of: "\t", with: "    ")))
                                 .textSelection(.enabled)
                         }
-                        .font(.system(.body, design: .monospaced)).lineSpacing(6)
+                        .font(.system(.body, design: .monospaced)).lineSpacing(3)
                         .fixedSize(horizontal: true, vertical: true)
-                        .padding(16)
+                        .padding(12)
                         .frame(minWidth: geometry.size.width, minHeight: geometry.size.height, alignment: .topLeading)
                     }
                     .defaultScrollAnchor(.topLeading)
@@ -298,15 +288,8 @@ struct HostsCurrentPreview: View {
             .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.secondary.opacity(0.15)))
-            HStack {
-                Button { reload() } label: { Label(s[.refresh], systemImage: "arrow.clockwise") }
-                    .buttonStyle(.bordered)
-                    .disabled(service.busy)
-                Spacer()
-                Button(s[.close]) { dismiss() }.buttonStyle(.borderedProminent).keyboardShortcut(.cancelAction)
-            }
         }
-        .padding(24).frame(width: 760, height: 560)
+        .padding(16).frame(width: 860, height: 620)
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear { reload() }
     }

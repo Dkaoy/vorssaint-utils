@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.4.6] - 2026-10-22
+
+### Changed
+- Give the read-only Hosts preview more space for content with compact header controls, a combined section and line-count toolbar, tighter line spacing and a larger viewport. Distinguish comments, IP addresses and managed block boundaries with syntax colors in light and dark modes.
+
 ## [3.4.5] - 2026-10-22
 
 ### Added
