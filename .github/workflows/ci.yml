@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   compatibility:
+    if: github.repository == 'vorssaint/vorssaint-utils'
     name: Swift 6.0.3 compatibility
     runs-on: macos-15
     timeout-minutes: 30
@@ -39,6 +40,7 @@ jobs:
         run: ./build.sh --test
 
   build:
+    if: github.repository == 'vorssaint/vorssaint-utils'
     name: Build & selftest
     runs-on: macos-26
     timeout-minutes: 30
@@ -58,3 +60,24 @@ jobs:
 
       - name: Unit tests
         run: ./build.sh --test
+
+  fork:
+    if: github.repository == 'Dkaoy/vorssaint-utils'
+    name: Fork build and focused regression checks
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      VORSSAINT_ADHOC_SIGNING: '1'
+      VORSSAINT_BUILD_JOBS: '4'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Translation and Hosts
+        run: zsh Tools/test-fork-features.sh
+      - name: Features, settings, shortcuts and updates
+        run: zsh build.sh --test-suite=features --test-suite=settings --test-suite=keyboard --test-suite=preferences --test-suite=feature-hub-layout --test-suite=updates
+      - name: Build fork without signing credentials
+        run: zsh build.sh
+      - name: Verify app signature
+        run: codesign --verify --deep --strict build/stage/Vorssaint.app

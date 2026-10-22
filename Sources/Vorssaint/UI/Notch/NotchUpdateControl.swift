@@ -21,7 +21,7 @@ struct NotchUpdateControl: View {
                     if compact {
                         Image(systemName: "arrow.down.circle.fill")
                     } else {
-                        Label(l10n.s.updateBannerAction, systemImage: "arrow.down.circle.fill")
+                        Label(ForkUpdateDistribution.downloadLabel(l10n.language), systemImage: "arrow.down.circle.fill")
                     }
                 }
                 .font(.system(size: 11, weight: .semibold))
@@ -34,7 +34,7 @@ struct NotchUpdateControl: View {
             .fixedSize()
             .help(title)
             .accessibilityLabel(title)
-            .accessibilityHint(l10n.s.updateBannerAction)
+            .accessibilityHint(ForkUpdateDistribution.downloadLabel(l10n.language))
         case let .downloading(progress):
             progressIndicator(title: l10n.s.updateDownloading, fraction: progress)
         case .installing:

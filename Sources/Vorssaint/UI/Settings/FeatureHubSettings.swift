@@ -1068,6 +1068,8 @@ extension AppFeature {
         case .mediaTools: return s.mediaName
         case .cleaner: return s.cleanerName
         case .uninstaller: return s.uninstallerName
+        case .translation: return TranslationStrings.current[.title]
+        case .hosts: return HostsStrings.current[.title]
         case .killProcess: return FeatureStrings.killProcess(L10n.shared.language).pageTitle
         case .portManager: return FeatureStrings.portManager(L10n.shared.language).title
         case .homebrew: return s.homebrewName
@@ -1158,6 +1160,8 @@ extension AppFeature {
             return description + " · "
                 + FeatureStrings.whatsAppDownloads(L10n.shared.language).hubDescription
         case .uninstaller: return hub.descUninstaller
+        case .translation: return TranslationStrings.current[.caption]
+        case .hosts: return HostsStrings.current[.caption]
         case .killProcess: return FeatureStrings.killProcess(L10n.shared.language).hubDescription
         case .portManager: return FeatureStrings.portManager(L10n.shared.language).hubDescription
         case .homebrew: return hub.descHomebrew

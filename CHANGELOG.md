@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.4.3] - 2026-10-22
+
+### Added
+- Dkaoy fork based on upstream 3.4.2, including Dynamic Island.
+- Restore Apple, AI API and Codex CLI translation with selection, clipboard and OCR entry points.
+- Add styled Hosts profiles with managed blocks, change previews, backups and restore.
+
+### Changed
+- Check this fork's GitHub Releases for updates. Download and install manually.
+- Distribute ad-hoc signed, unnotarized Apple Silicon builds without Apple signing credentials.
+- Protected fan control still requires a trusted Developer ID signature; this build does not relax helper authentication.
+
 ## [3.4.2] - 2026-10-21
 
 ### Summary

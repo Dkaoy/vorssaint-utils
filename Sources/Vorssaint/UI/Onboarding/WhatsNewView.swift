@@ -39,6 +39,12 @@ struct UpdatePreviewView: View {
             Divider()
 
             ScrollView {
+                Text(ForkUpdateDistribution.notice(l10n.language))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 28)
+                    .padding(.top, 16)
                 ReleaseNotesContent(releases: [release])
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 28)
@@ -54,7 +60,7 @@ struct UpdatePreviewView: View {
                 Spacer(minLength: 8)
                 Button(l10n.s.uninstallerCancel) { onCancel() }
                     .keyboardShortcut(.cancelAction)
-                Button(l10n.s.updateInstallButton) {
+                Button(ForkUpdateDistribution.downloadLabel(l10n.language)) {
                     // Saved only on Update: ticking the box and then cancelling
                     // must not turn the next update into a silent install.
                     if skipNextTime {

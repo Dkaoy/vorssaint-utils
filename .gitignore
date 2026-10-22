@@ -24,3 +24,7 @@ CLAUDE.md
 *.xcodeproj
 xcuserdata/
 .swiftpm/
+
+# Local release tooling and validation artifacts
+.local-tools/
+.local-validation/

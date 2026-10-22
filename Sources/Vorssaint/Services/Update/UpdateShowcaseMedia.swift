@@ -10,7 +10,7 @@ enum UpdateShowcaseInfo {
     static let mediaSHA256 = "88031b2b48708b8eb96248fef1143432a0600382b59ad5ea39e0746af27ab9e8"
 
     static var remoteMediaURL: URL {
-        URL(string: "https://github.com/vorssaint/vorssaint-utils/releases/download/v\(releaseVersion)/\(mediaAssetName)")!
+        URL(string: "https://github.com/Dkaoy/vorssaint-utils/releases/download/v\(releaseVersion)/\(mediaAssetName)")!
     }
 
     static var localDeveloperMediaURL: URL? {
@@ -87,6 +87,9 @@ final class UpdateShowcaseMediaLoader: ObservableObject {
         }
         try? FileManager.default.removeItem(at: cached)
 
+        // This fork does not publish the upstream showcase movie. Use bundled
+        // illustrations instead of making an unrelated upstream release request.
+        if ForkUpdateDistribution.manualDownloadOnly { state = .failed; return }
         state = .loading
         // The checksum is verified after the download, so it cannot stop a
         // response from filling the disk on the way there; the byte ceiling

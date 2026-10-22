@@ -590,6 +590,8 @@ struct SettingsView: View {
         case .autoQuit: AutoQuitSettings()
         case .quitProtection: QuitProtectionSettings()
         case .uninstaller: UninstallerView()
+        case .translation: TranslationSettings()
+        case .hosts: HostsEditorView()
         case .killProcess: KillProcessView()
         case .portManager: PortManagerView()
         case .urlCleaner: URLCleanerSettings()
@@ -655,7 +657,7 @@ struct UpdatesView: View {
                 .disabled(isBusy)
 
                 if case .available = updates.state {
-                    Button(l10n.s.updateInstallButton) {
+                    Button(ForkUpdateDistribution.downloadLabel(l10n.language)) {
                         appDelegate()?.showUpdatePreview()
                     }
                     .buttonStyle(.borderedProminent)

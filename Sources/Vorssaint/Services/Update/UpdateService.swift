@@ -27,7 +27,7 @@ final class UpdateService: ObservableObject {
     /// preview. Set alongside `.available`; cleared otherwise.
     @Published private(set) var availableNotes: String?
 
-    private let repository = "vorssaint/vorssaint-utils"
+    private let repository = ForkUpdateDistribution.repository
     private var downloadURL: URL?
     /// Size the release advertises for the asset, used to bound the download.
     private var downloadExpectedBytes: Int64?
@@ -206,6 +206,13 @@ final class UpdateService: ObservableObject {
     // MARK: - Download & install
 
     func downloadAndInstall() {
+        // The fork has no Developer ID identity. Keep upstream signature checks
+        // intact, but never download, elevate, replace the app or quit here.
+        if ForkUpdateDistribution.manualDownloadOnly {
+            guard !AppInfo.isDeveloperBuild, case let .available(version) = state else { return }
+            NSWorkspace.shared.open(ForkUpdateDistribution.releaseURL(version: version))
+            return
+        }
         if AppInfo.isDeveloperBuild { return }  // never replace the local dev build over itself
         guard let downloadURL else { return }
         // Pre-flight BEFORE spending the download: a translocated app or one

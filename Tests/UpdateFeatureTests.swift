@@ -13,6 +13,16 @@ import VMStatisticsCompat
 
 enum UpdateFeatureTests {
     static func run(_ suite: TestSuite) {
+        suite.expect(ForkUpdateDistribution.manualDownloadOnly,
+                     "unnotarized fork builds must never enter automatic installation")
+        suite.expect(ForkUpdateDistribution.repository == "Dkaoy/vorssaint-utils",
+                     "update feed belongs to the publishing fork")
+        suite.expect(ForkUpdateDistribution.releaseURL(version: "3.4.4").absoluteString
+                     == "https://github.com/Dkaoy/vorssaint-utils/releases/tag/v3.4.4",
+                     "manual update opens the offered release rather than an upstream or moving latest page")
+        suite.expect(ForkUpdateDistribution.releaseURL(version: "3.4.4-beta.1").lastPathComponent == "v3.4.4-beta.1",
+                     "manual download retains the offered prerelease version")
+
         suite.expect(BrightnessUpdatePromptInfo.isUpgrade(appVersion: "3.4.0-beta.7",
                                                           previousVersion: "3.4.0-beta.6")
                     && BrightnessUpdatePromptInfo.isUpgrade(appVersion: "3.4.0",

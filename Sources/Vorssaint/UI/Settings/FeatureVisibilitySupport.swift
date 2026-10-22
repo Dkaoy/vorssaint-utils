@@ -8,7 +8,7 @@ import Foundation
 /// below and the unit tests can reason about pages without pulling UI in.
 enum SettingsPage: Hashable {
     case general, features, energy, monitor
-    case mouse, switcher, dock, keyDebounce, superKey, cutPaste, autoQuit, quitProtection, cleaner, uninstaller, urlCleaner, homebrew, appUpdates, media, clipboard, windowLayout, shelf, quickTools, textSnippets, screenshot, radialMenu, commandBar, killProcess, portManager, notch, notchMascot
+    case mouse, switcher, dock, keyDebounce, superKey, cutPaste, autoQuit, quitProtection, cleaner, uninstaller, urlCleaner, homebrew, appUpdates, media, clipboard, windowLayout, shelf, quickTools, textSnippets, screenshot, radialMenu, commandBar, killProcess, portManager, notch, notchMascot, translation, hosts
     case shortcuts, advanced, about, releaseNotes, support
 }
 
@@ -47,6 +47,7 @@ enum SettingsSectionAnchor: String, CaseIterable, Hashable {
     case screenRecorder
     case colorPicker
     case screenOCR
+    case translation
     case micMute
     case cameraPreview
     case wallpaper
@@ -72,6 +73,7 @@ enum SettingsSectionAnchor: String, CaseIterable, Hashable {
         case .clipboardHistory, .pastePlain: return .clipboard
         case .quickLauncher, .quickToggles, .micMute, .cameraPreview, .wallpaper, .scratchpad, .cleaningMode:
             return .quickTools
+        case .translation: return .translation
         case .screenshot, .screenRecorder, .colorPicker, .screenOCR:
             return .screenshot
         case .keyboardBrightnessShortcuts: return .shortcuts
@@ -358,6 +360,8 @@ extension AppFeature {
         case .mediaTools: return FeatureSettingsDestination(.media)
         case .cleaner: return FeatureSettingsDestination(.cleaner)
         case .uninstaller: return FeatureSettingsDestination(.uninstaller)
+        case .translation: return FeatureSettingsDestination(.translation, sectionAnchor: .translation)
+        case .hosts: return FeatureSettingsDestination(.hosts)
         case .killProcess: return FeatureSettingsDestination(.killProcess)
         case .portManager: return FeatureSettingsDestination(.portManager)
         case .homebrew: return FeatureSettingsDestination(.homebrew)
@@ -417,6 +421,8 @@ enum FeatureVisibilitySupport {
         case .homebrew: return [.homebrew]
         case .appUpdates: return [.appUpdates]
         case .uninstaller: return [.uninstaller]
+        case .translation: return [.translation]
+        case .hosts: return [.hosts]
         case .killProcess: return [.killProcess]
         case .portManager: return [.portManager]
         case .keyDebounce: return [.keyboardDebounce]

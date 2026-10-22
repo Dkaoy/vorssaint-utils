@@ -449,7 +449,7 @@ struct NotchView: View {
         // An offer the row has no room for still reaches the island.
         if updateOffered {
             Button(action: service.showUpdate) {
-                Label(l10n.s.updateBannerAction, systemImage: "arrow.down.circle")
+                Label(ForkUpdateDistribution.downloadLabel(l10n.language), systemImage: "arrow.down.circle")
             }
         }
         Divider()

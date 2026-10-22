@@ -67,6 +67,7 @@ ENTITLEMENTS="Resources/Vorssaint.entitlements"
 LEGACY_IDENTITY="Vorssaint Utils Signing"
 
 developer_id_identity() {
+    [[ "${VORSSAINT_ADHOC_SIGNING:-0}" == 1 ]] && return 0
     security find-identity -v -p codesigning 2>/dev/null \
         | grep 'Developer ID Application' \
         | head -1 \
@@ -77,6 +78,7 @@ developer_id_identity() {
 # expired one fails the build with errSecInternalComponent), and -v excludes
 # every self-signed one; ask codesign itself with a throwaway copy of /bin/echo.
 legacy_identity_installed() {
+    [[ "${VORSSAINT_ADHOC_SIGNING:-0}" == 1 ]] && return 1
     local probe signed=1
     # A locked keychain still lists its identities but cannot sign with them,
     # and this one is locked after every reboot; unlock it before asking.
@@ -99,7 +101,7 @@ legacy_identity_installed() {
 # up front instead of falling through to ad-hoc — setup-signing.sh is free,
 # offline and idempotent. Gating on the install rather than the variant keeps
 # this off CI, where neither ci.yml nor release.yml passes --install.
-if (( DEV || INSTALL )) && [[ -z "$(developer_id_identity)" ]] \
+if [[ "${VORSSAINT_ADHOC_SIGNING:-0}" != 1 ]] && (( DEV || INSTALL )) && [[ -z "$(developer_id_identity)" ]] \
     && ! legacy_identity_installed; then
     echo "▸ No signing identity installed; creating the stable local one…"
     if ! ./Tools/setup-signing.sh; then
@@ -205,11 +207,12 @@ else
     SDK="$(xcrun --show-sdk-path)"
 fi
 SDK_COMPAT_FLAGS=()
+SDK_COMPAT_FLAGS+=(-module-cache-path "$PWD/build/objects/module-cache")
 VM_STATISTICS_COMPAT_FLAGS=(-I Sources/VMStatisticsCompat)
 HID_EVENT_SYSTEM_FLAGS=(-I Sources/HIDEventSystem)
 if [[ "$SDK" == "$PINNED_SDK" ]]; then
     # Swift 6.4 can read the SDK 26 interfaces when given their compiler version.
-    SDK_COMPAT_FLAGS=(-Xfrontend -interface-compiler-version -Xfrontend 6.3.2)
+    SDK_COMPAT_FLAGS+=(-Xfrontend -interface-compiler-version -Xfrontend 6.3.2)
 fi
 
 # The defaults migrations under test need a real UserDefaults suite, and every
@@ -328,6 +331,9 @@ if (( TEST )); then
         Sources/Vorssaint/Services/Notch/NotchPlaybackCommand.swift
         Sources/Vorssaint/Services/Notch/NotchMusicCommandWriter.swift
         Sources/Vorssaint/Core/FeatureCatalog.swift
+        Sources/Vorssaint/Core/TranslationStrings.swift
+        Sources/Vorssaint/Core/HostsStrings.swift
+        Sources/Vorssaint/Services/Hosts/HostsSupport.swift
         Sources/Vorssaint/Core/FeaturePresets.swift
         Sources/Vorssaint/Core/FeatureHubStrings.swift
         Sources/Vorssaint/Core/ShortcutSettingsStrings.swift
@@ -574,13 +580,14 @@ if (( TEST )); then
     TEST_OUTPUT_FILE_MAP="$TEST_OBJECT_DIR/output-file-map.json"
     write_swift_output_file_map "$TEST_OUTPUT_FILE_MAP" "$TEST_OBJECT_DIR" "${TEST_SOURCES[@]}"
     echo "▸ Building & running tests against $(basename "$SDK")…"
-    swiftc -Onone -incremental -enable-batch-mode -j "$(sysctl -n hw.logicalcpu)" \
+    swiftc -Onone -incremental -enable-batch-mode -j "${VORSSAINT_BUILD_JOBS:-$(sysctl -n hw.logicalcpu)}" \
         -module-name VorssaintTests -output-file-map "$TEST_OUTPUT_FILE_MAP" \
         -target "$TARGET" -sdk "$SDK" "${SDK_COMPAT_FLAGS[@]}" \
         "${VM_STATISTICS_COMPAT_FLAGS[@]}" "${TEST_SOURCES[@]}" -o build/metrics-tests
     test_status=0
     ./build/metrics-tests "${TEST_ARGS[@]}" || test_status=$?
     if (( ${#TEST_ARGS} == 0 )); then
+        /bin/zsh Tools/test-fork-features.sh || test_status=1
         ./Tests/PreferenceCleanupTests.sh || test_status=1
         ./Tests/UninstallSpacesTests.sh || test_status=1
         ./Tests/DeveloperInstallIsolationTests.sh || test_status=1
@@ -606,7 +613,7 @@ write_swift_output_file_map "$APP_OUTPUT_FILE_MAP" "$APP_OBJECT_DIR" "${APP_SOUR
 # each file's compiler parses the whole module again: a clean release took a
 # quarter of an hour. Batches share that work and run on every core, and the
 # optimization stays per file, as before.
-swiftc "${APP_OPTIMIZATION_FLAGS[@]}" -incremental -enable-batch-mode -j "$(sysctl -n hw.logicalcpu)" \
+swiftc "${APP_OPTIMIZATION_FLAGS[@]}" -incremental -enable-batch-mode -j "${VORSSAINT_BUILD_JOBS:-$(sysctl -n hw.logicalcpu)}" \
     -output-file-map "$APP_OUTPUT_FILE_MAP" \
     -target "$TARGET" -sdk "$SDK" "${SDK_COMPAT_FLAGS[@]}" "${VM_STATISTICS_COMPAT_FLAGS[@]}" "${HID_EVENT_SYSTEM_FLAGS[@]}" \
     "${BUILD_VARIANT_FLAGS[@]}" \
@@ -634,7 +641,7 @@ swiftc -O -target "$TARGET" -sdk "$SDK" "${SDK_COMPAT_FLAGS[@]}" -emit-library \
     -o "build/$NOW_PLAYING_ADAPTER"
 
 echo "▸ Generating app icon…"
-swift Tools/MakeIcon.swift build/AppIcon.iconset
+swift -sdk "$SDK" "${SDK_COMPAT_FLAGS[@]}" Tools/MakeIcon.swift build/AppIcon.iconset
 xattr -c -r build/AppIcon.iconset build/AppIcon.icns build/MenuBarIcon.png build/MenuBarIcon@2x.png build/BrandMark.png 2>/dev/null || true
 ACTOOL_BIN="$(xcrun --find actool 2>/dev/null || true)"
 ICON_TMP="$(mktemp -d)"

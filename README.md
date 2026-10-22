@@ -23,9 +23,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/vorssaint/vorssaint-utils/releases"><img src="https://img.shields.io/github/v/release/vorssaint/vorssaint-utils?label=release&color=4c8dff" alt="Latest release"></a>
-  <a href="https://github.com/vorssaint/vorssaint-utils/releases"><img src="https://img.shields.io/github/downloads/vorssaint/vorssaint-utils/total?color=4c8dff" alt="Downloads"></a>
-  <a href="https://github.com/vorssaint/vorssaint-utils/actions/workflows/ci.yml"><img src="https://github.com/vorssaint/vorssaint-utils/actions/workflows/ci.yml/badge.svg?branch=main&event=push" alt="CI status"></a>
+  <a href="https://github.com/Dkaoy/vorssaint-utils/releases"><img src="https://img.shields.io/github/v/release/Dkaoy/vorssaint-utils?label=release&color=4c8dff" alt="Latest release"></a>
+  <a href="https://github.com/Dkaoy/vorssaint-utils/releases"><img src="https://img.shields.io/github/downloads/Dkaoy/vorssaint-utils/total?color=4c8dff" alt="Downloads"></a>
+  <a href="https://github.com/Dkaoy/vorssaint-utils/actions/workflows/ci.yml"><img src="https://github.com/Dkaoy/vorssaint-utils/actions/workflows/ci.yml/badge.svg?branch=main&event=push" alt="CI status"></a>
   <a href="#what-you-need"><img src="https://img.shields.io/badge/macOS-14%2B%20Apple%20Silicon-black" alt="macOS 14 and newer, Apple Silicon"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue" alt="License GPL 3.0 or later"></a>
 </p>
@@ -57,6 +57,8 @@
 Per app volume, a real system monitor, a better app switcher, window snapping, Dock previews, clipboard history, text snippets, a file shelf, an uninstaller. The utilities Mac users usually buy one by one, together behind a single menu bar icon, with no account, no telemetry and no subscription.
 
 ## Install only what you use
+
+> **Dkaoy 社区 fork**：新版上游 Dynamic Island + Apple / AI / Codex 翻译 + Hosts 配置。此分支未经 Apple 公证，更新仅提示手动下载。来源、验证与构建说明见 [分支说明](docs/LOCAL-FORK.md)，安装限制见 [发布说明](docs/RELEASE-NOTES.md)。
 
 Choose individual features or start with a preset. Uninstalled features stop loading and disappear from the interface; reinstalling restores their settings. Setup asks only for the permissions your choices need.
 
@@ -170,15 +172,11 @@ Reorder or hide panel sections, choose a compact layout, and export settings to 
 
 ## Install
 
-With [Homebrew](https://brew.sh):
+Download this fork's DMG or ZIP from the [Dkaoy releases page](https://github.com/Dkaoy/vorssaint-utils/releases) and drag Vorssaint into Applications.
 
-```sh
-brew install --cask vorssaint
-```
+These Apple Silicon builds use ad-hoc signing and are **not notarized**. Updates open this fork's release page for manual installation. macOS may require approval in Privacy & Security and renewed Accessibility / Screen Recording permissions after replacement. Protected fan control requires a trusted Developer ID signature and is unavailable in this build. See the [release notes](docs/RELEASE-NOTES.md).
 
-Or grab the disk image from the [releases page](https://github.com/vorssaint/vorssaint-utils/releases) and drag Vorssaint into Applications.
-
-Builds are signed with an Apple Developer ID and notarized, so macOS opens them without a fuss and your permissions survive updates.
+The upstream Homebrew cask installs the official app, which does not include this fork's additions.
 
 ## Uninstall
 

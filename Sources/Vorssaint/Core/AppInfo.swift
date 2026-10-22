@@ -8,7 +8,7 @@ enum AppInfo {
     static let name = "Vorssaint"
     static let copyright = "© 2026 Vorssaint"
     static let websiteURL = URL(string: "https://vorssaint.com")!
-    static let repositoryURL = URL(string: "https://github.com/vorssaint/vorssaint-utils")!
+    static let repositoryURL = URL(string: "https://github.com/Dkaoy/vorssaint-utils")!
     static let coffeeURL = URL(string: "https://buymeacoffee.com/vorssaint")!
     static let discordURL = URL(string: "https://discord.gg/M6BwWH4BJp")!
     static let socialURL = URL(string: "https://x.com/vorssaint")!
@@ -40,5 +40,29 @@ enum AppInfo {
     /// running dev app matches the source you are about to change. nil in the official app.
     static var buildCommit: String? {
         Bundle.main.object(forInfoDictionaryKey: "VorssaintBuildCommit") as? String
+    }
+}
+
+/// This fork distributes ad-hoc signed builds. Never enter the upstream installer.
+enum ForkUpdateDistribution {
+    static let repository = "Dkaoy/vorssaint-utils"
+    static let manualDownloadOnly = true
+    static var releasesURL: URL { AppInfo.repositoryURL.appendingPathComponent("releases") }
+    static func releaseURL(version: String) -> URL {
+        releasesURL.appendingPathComponent("tag").appendingPathComponent("v" + version)
+    }
+    static func downloadLabel(_ language: AppLanguage) -> String {
+        switch language {
+        case .zhHans: return "前往下载"
+        case .zhTW, .zhHK: return "前往下載"
+        default: return "Download Manually"
+        }
+    }
+    static func notice(_ language: AppLanguage) -> String {
+        switch language {
+        case .zhHans: return "此分支提供未公证安装包。更新将打开 GitHub 发布页，请下载后手动安装。"
+        case .zhTW, .zhHK: return "此分支提供未公證安裝包。更新將開啟 GitHub 發布頁，請下載後手動安裝。"
+        default: return "This fork is not notarized. Updates open GitHub Releases for manual download and installation."
+        }
     }
 }
