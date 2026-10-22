@@ -38,6 +38,11 @@ enum AdminShell {
         let original = "127.0.0.1 localhost\n# untouched\n"
         try Data(original.utf8).write(to: target)
         let service = HostsService(target: target, storage: storage)
+        let initialSnapshot = try service.snapshot()
+        try expect(initialSnapshot.text == original && initialSnapshot.document?.original == original,
+                   "preview reads the full current file before loading any profiles")
+        try expect(initialSnapshot.document?.managed == "" && !FileManager.default.fileExists(atPath: storage.path),
+                   "preview works without profiles and creates no storage")
         service.reload()
         try expect(service.error == nil && service.profiles.isEmpty, "fresh load")
         let profile = HostsProfile(name: "Development", mappings: [.init(address: "127.0.0.1", domains: "app.test")])
@@ -65,6 +70,11 @@ enum AdminShell {
         let fresh = HostsService(target: target, storage: storage)
         fresh.reload()
         try expect(fresh.error == nil && fresh.profiles[0].isEnabled, "enabled status survives restart")
+        let enabledSnapshot = try fresh.snapshot()
+        try expect(Data(enabledSnapshot.text.utf8) == enabling.replacement
+                   && enabledSnapshot.document?.original == original
+                   && enabledSnapshot.document?.managed.contains("app.test") == true,
+                   "preview separates existing text and enabled mappings while keeping the complete file")
         let restore = try fresh.restore()!
         try expect(restore.profiles == [profile], "restore contains prior disabled configuration")
         try expect(String(decoding: restore.replacement, as: UTF8.self) == original, "restore only removes managed mappings")
@@ -100,6 +110,33 @@ enum AdminShell {
         try Data(tampered.utf8).write(to: target)
         cancelled.reload()
         try expect(cancelled.error != nil, "external managed edits refused")
+        // Inspection must still work when local state or managed markers are damaged.
+        let stateFile = storage.appendingPathComponent("profiles.json")
+        let invalidState = Data("not valid profile JSON".utf8)
+        try invalidState.write(to: stateFile)
+        let broken = original + HostsSupport.prefix + "broken marker\n192.0.2.7 inspect.test\n"
+        try Data(broken.utf8).write(to: target)
+        var previewPrompted = false
+        AdminShell.handler = { _, completion in previewPrompted = true; completion(false) }
+        let inspection = HostsService(target: target, storage: storage)
+        let brokenSnapshot = try inspection.snapshot()
+        try expect(brokenSnapshot.text == broken && brokenSnapshot.document == nil,
+                   "damaged markers remain inspectable as complete raw text")
+        try expect(!previewPrompted && inspection.profiles.isEmpty && inspection.error == nil,
+                   "inspection never authorizes, reconciles or changes profile state")
+        try expect(try Data(contentsOf: stateFile) == invalidState && String(contentsOf: target) == broken,
+                   "preview never persists state or rewrites the hosts file")
+        let outside = "# updated outside\r\n127.0.0.1\tlocalhost"
+        try Data(outside.utf8).write(to: target)
+        try expect(try inspection.snapshot().text == outside,
+                   "reloading the preview rereads disk and preserves CRLF, tabs and missing final newline")
+        try Data([0xFF, 0xFE]).write(to: target)
+        do {
+            _ = try inspection.snapshot()
+            try expect(false, "invalid UTF-8 must not silently replace bytes")
+        } catch HostsFailure.malformed {
+            try expect(true, "invalid UTF-8 is reported without replacement")
+        }
         print("HostsServiceTests: \(checks) checks passed")
     }
 }

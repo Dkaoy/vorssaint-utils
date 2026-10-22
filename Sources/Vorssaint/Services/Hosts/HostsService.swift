@@ -51,6 +51,15 @@ final class HostsService: ObservableObject {
         guard let text = String(data: data, encoding: .utf8), Data(text.utf8) == data else { throw HostsFailure.malformed }
         return try HostsSupport.parse(text)
     }
+    /// Read-only disk snapshot; never load, reconcile or persist profile state.
+    /// Damaged markers prevent writes, but must not prevent inspecting the file.
+    func snapshot() throws -> HostsSupport.Snapshot {
+        let data = try readHosts()
+        guard let text = String(data: data, encoding: .utf8), Data(text.utf8) == data else {
+            throw HostsFailure.malformed
+        }
+        return HostsSupport.Snapshot(text: text)
+    }
     private func load() throws {
         guard !loaded, let storage else { if !loaded { throw HostsFailure.storage }; return }
         let file = storage.appendingPathComponent("profiles.json")

@@ -13,6 +13,7 @@ struct HostsEditorView: View {
     @State private var change: HostsService.Change?
     @State private var deleting: HostsProfile?
     @State private var restoring = false
+    @State private var showingCurrent = false
     init(service: HostsService? = nil) { self.service = service ?? .shared }
     private var s: HostsStrings { HostsStrings(language: l10n.language) }
     private var filtered: [HostsProfile] {
@@ -46,7 +47,8 @@ struct HostsEditorView: View {
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear { service.reload() }
-        .onChange(of: activeState) { _, value in if value == .key, draft == nil, change == nil { service.reload() } }
+        .onChange(of: activeState) { _, value in if value == .key, draft == nil, change == nil, !showingCurrent { service.reload() } }
+        .sheet(isPresented: $showingCurrent) { HostsCurrentPreview(service: service) }
         .sheet(item: $draft) { profile in
             HostsProfileEditor(profile: profile) { edited in
                 var profiles = service.profiles
@@ -87,6 +89,8 @@ struct HostsEditorView: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
+                Button { showingCurrent = true } label: { Label(s[.viewCurrent], systemImage: "doc.text.magnifyingglass") }
+                    .buttonStyle(.bordered).disabled(service.busy)
                 Button { draft = HostsProfile() } label: { Label(s[.add], systemImage: "plus") }
                     .buttonStyle(.borderedProminent).disabled(service.busy)
             }
@@ -184,6 +188,138 @@ struct HostsEditorView: View {
     private func review(_ profiles: [HostsProfile]) {
         do { change = try service.prepare(profiles) }
         catch { service.error = s.message(error) }
+    }
+}
+
+@MainActor
+struct HostsCurrentPreview: View {
+    @ObservedObject var service: HostsService
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var l10n = L10n.shared
+    @State private var snapshot: HostsSupport.Snapshot?
+    @State private var section = 0
+    @State private var readFailed = false
+    private var s: HostsStrings { HostsStrings(language: l10n.language) }
+    private var content: String {
+        guard let snapshot else { return "" }
+        switch section {
+        case 1: return snapshot.document?.original ?? snapshot.text
+        case 2: return snapshot.document?.managed ?? snapshot.text
+        default: return snapshot.text
+        }
+    }
+    private var lines: [String] {
+        guard !content.isEmpty else { return [] }
+        var values = content.components(separatedBy: "\n")
+        if values.last == "" { values.removeLast() }
+        return values
+    }
+    private var sectionTitle: String {
+        switch section {
+        case 1: return s[.unmanagedContent]
+        case 2: return s[.managedContent]
+        default: return s[.allContent]
+        }
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 12) {
+                Image(systemName: "doc.text.magnifyingglass")
+                    .font(.title2).foregroundStyle(Color.accentColor)
+                    .frame(width: 46, height: 46)
+                    .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(s[.viewCurrent]).font(.title3.bold())
+                    Label("/etc/hosts", systemImage: "lock.fill")
+                        .font(.system(.caption, design: .monospaced)).foregroundStyle(.secondary)
+                }
+                Spacer()
+                Label(s[.readOnlyShort], systemImage: "lock.shield")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(Color.accentColor)
+                    .padding(.horizontal, 11).padding(.vertical, 6)
+                    .background(Color.accentColor.opacity(0.09), in: Capsule())
+            }
+            Text(s[.currentCaption]).font(.callout).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if readFailed {
+                Label(s[.readFailure], systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout).foregroundStyle(.orange)
+            } else if let snapshot, snapshot.document == nil {
+                Label(s[.markerWarning], systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout).foregroundStyle(.orange)
+                    .padding(12).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+            }
+            VStack(spacing: 0) {
+                if snapshot?.document != nil {
+                    Picker(s[.viewCurrent], selection: $section) {
+                        Text(s[.allContent]).tag(0)
+                        Text(s[.unmanagedContent]).tag(1)
+                        Text(s[.managedContent]).tag(2)
+                    }
+                    .pickerStyle(.segmented).labelsHidden()
+                    .padding(12).frame(maxWidth: .infinity)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    Divider()
+                }
+                HStack(spacing: 8) {
+                    Circle().fill(readFailed ? Color.orange : Color.accentColor).frame(width: 6, height: 6)
+                    Text(sectionTitle).font(.caption.weight(.medium))
+                    Spacer()
+                    Text("\(lines.count) \(s[.lineCount])").font(.caption.monospacedDigit())
+                }
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16).padding(.vertical, 10)
+                .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+                Divider()
+                GeometryReader { geometry in
+                    ScrollView([.vertical, .horizontal]) {
+                        HStack(alignment: .top, spacing: 16) {
+                            Text(lines.indices.map { String($0 + 1) }.joined(separator: "\n"))
+                                .foregroundStyle(.tertiary)
+                                .textSelection(.disabled)
+                                .frame(minWidth: 24, alignment: .trailing)
+                                .padding(.trailing, 14)
+                                .overlay(alignment: .trailing) {
+                                    Rectangle().fill(Color.secondary.opacity(0.12)).frame(width: 1)
+                                }
+                            Text(content.isEmpty ? "—" : content.replacingOccurrences(of: "\t", with: "    "))
+                                .textSelection(.enabled)
+                        }
+                        .font(.system(.body, design: .monospaced)).lineSpacing(6)
+                        .fixedSize(horizontal: true, vertical: true)
+                        .padding(16)
+                        .frame(minWidth: geometry.size.width, minHeight: geometry.size.height, alignment: .topLeading)
+                    }
+                    .defaultScrollAnchor(.topLeading)
+                }
+            }
+            .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.secondary.opacity(0.15)))
+            HStack {
+                Button { reload() } label: { Label(s[.refresh], systemImage: "arrow.clockwise") }
+                    .buttonStyle(.bordered)
+                    .disabled(service.busy)
+                Spacer()
+                Button(s[.close]) { dismiss() }.buttonStyle(.borderedProminent).keyboardShortcut(.cancelAction)
+            }
+        }
+        .padding(24).frame(width: 760, height: 560)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .onAppear { reload() }
+    }
+    private func reload() {
+        do {
+            snapshot = try service.snapshot()
+            readFailed = false
+            if snapshot?.document == nil { section = 0 }
+        } catch {
+            snapshot = nil
+            section = 0
+            readFailed = true
+        }
     }
 }
 

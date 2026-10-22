@@ -61,7 +61,7 @@ zsh Tools/test-fork-features.sh
 
 ## Fork 发布
 
-版本为 3.4.3，最低 macOS 14，仅 arm64。发布包为 ad-hoc 签名，未经公证；自动安装入口改为打开对应 GitHub Release 页。原上游签名验证保持严格，受保护的风扇助手不可用于此构建。
+当前版本为 3.4.4，最低 macOS 14，仅 arm64。发布包为 ad-hoc 签名，未经公证；自动安装入口改为打开对应 GitHub Release 页。原上游签名验证保持严格，受保护的风扇助手不可用于此构建。
 
 ```sh
 VORSSAINT_ADHOC_SIGNING=1 VORSSAINT_BUILD_JOBS=4 zsh build.sh
@@ -79,3 +79,11 @@ GitHub Actions 的 Fork Release 支持手动选择已存在的版本标签构建
 - Dynamic Island 的 66,328 项检查在正常桌面上下文全部通过；此前沙盒内的六项失败已复验排除。与上述两组回归合计 90,077 项检查全部通过。
 - DMG 经 `hdiutil verify` 校验通过；ZIP、应用签名与 SHA-256 清单在发布前校验。安装包未经公证，首次安装需手动下载；受保护风扇控制助手仍不可用于此签名。
 - 发布阶段日志位于 `.local-validation/`（已忽略，不提交）；旧迁移日志另存于 `.local-validation/migration/`。
+
+## 3.4.4 发布验证
+
+- 新增 Hosts 完整只读预览、分区切换、行号、统计和重新读取；使用临时文件验证不授权、不写入、异常标记及损坏配置时可查看。
+- 翻译 80 项、Hosts 基础 73 项、Hosts 服务流程 24 项检查通过，合计 177 项。以 `.local-validation/v3.4.4-feature-tests-final.log` 为最终结果；首次并行运行被中断后，已在构建结束后单独重跑。
+- 全量源码类型检查、中文预览渲染检查、正式 arm64 构建和签名校验通过；自适应图标继续使用 AppIcon.icns 回退。
+- 完整应用的临时副本使用随机测试 bundle ID，在正常桌面环境下得到 `SELFTEST OK`；未安装应用或修改系统 hosts。
+- 未重新运行 3.4.3 的全部历史测试套件。发布继续使用自己的 GitHub Releases，仅提示手动下载，不启用自动安装。

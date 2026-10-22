@@ -33,6 +33,8 @@ struct HostsTests {
             try expect(doc.original == original, "preserve exact original, including newline state")
             try expect(doc.blocks.count == 2, "multiple independent blocks")
             try expect(doc.blocks[profile.id] == HostsSupport.body(profile), "correct mappings")
+            try expect(doc.managed == text[text.range(of: HostsSupport.prefix)!.lowerBound...],
+                       "read-only managed preview preserves markers, mapping order and exact text")
             let removed = try HostsSupport.render(original: doc.original, profiles: [])
             try expect(removed == original, "disable all recovers original bytes")
             let retained = try HostsSupport.render(original: doc.original, profiles: [other])

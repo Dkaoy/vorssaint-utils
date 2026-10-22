@@ -10,12 +10,24 @@ struct HostsStrings {
         case notice, invalidRow, invalidName, pending, backup, restore, disableAll, flush, flushDone
         case confirmation, conflict, failure, changed, malformed, unknown, storage, authorization, tooLarge
         case closeWarning, discard, count, deleteMessage, restoreMessage, status, readOnly, search, applied
+        case viewCurrent, allContent, unmanagedContent, managedContent, currentCaption, markerWarning, close, readFailure
+        case readOnlyShort, lineCount
     }
     let language: AppLanguage
     static var current: HostsStrings { HostsStrings(language: L10n.shared.language) }
     subscript(_ key: Key) -> String {
         let pair: (String, String)
         switch key {
+        case .readOnlyShort: pair = ("只读", "Read Only")
+        case .lineCount: pair = ("行", "lines")
+        case .viewCurrent: pair = ("查看当前 Hosts", "View Current Hosts")
+        case .allContent: pair = ("完整内容", "Full Contents")
+        case .unmanagedContent: pair = ("原有内容", "Unmanaged Content")
+        case .managedContent: pair = ("Vorssaint 配置", "Vorssaint Mappings")
+        case .currentCaption: pair = ("只读显示系统文件的当前内容，可选择复制；重新读取以获取最新状态。", "Read-only contents of the system file. Select text to copy; reload to get the latest snapshot.")
+        case .markerWarning: pair = ("配置标记无法完整识别，当前仅显示完整原文。此预览不会修复或修改文件。", "Profile markers could not be parsed. Only the full original text is shown; this preview does not repair or modify the file.")
+        case .close: pair = ("关闭", "Close")
+        case .readFailure: pair = ("无法读取当前 Hosts，请检查文件权限和格式后重新读取。", "Could not read the current hosts file. Check its permissions and format, then reload.")
         case .title: pair = ("Hosts 配置", "Hosts Profiles")
         case .caption: pair = ("用独立配置管理域名映射，启用后追加到 hosts，保留原有内容。", "Manage domain mappings in profiles. Enabled profiles are appended to hosts; existing content is preserved.")
         case .add: pair = ("新增配置", "New Profile")

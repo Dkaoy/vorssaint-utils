@@ -6,6 +6,15 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [3.4.4] - 2026-10-22
+
+### Added
+- Hosts profiles can preview the current system hosts file without authorization, with full, unmanaged and Vorssaint-managed views, selectable text and reload. Damaged markers remain inspectable in the full view.
+
+### Changed
+- Style the Hosts preview with a read-only badge, section toolbar, line numbers, line counts and aligned monospaced content.
+- Translate the README into Chinese and document this fork's installation and build process.
+
 ## [3.4.3] - 2026-10-22
 
 ### Added

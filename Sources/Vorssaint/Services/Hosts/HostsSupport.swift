@@ -32,6 +32,15 @@ enum HostsSupport {
     struct Document {
         var original: String
         var blocks: [UUID: String]
+        var managed: String
+    }
+    struct Snapshot {
+        let text: String
+        let document: Document?
+        init(text: String) {
+            self.text = text
+            document = try? HostsSupport.parse(text)
+        }
     }
     static func digest(_ data: Data) -> String {
         SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
@@ -69,7 +78,7 @@ enum HostsSupport {
     }
     static func parse(_ text: String) throws -> Document {
         guard text.utf8.count <= limit, !text.contains("\0") else { throw HostsFailure.tooLarge }
-        var original = "", blocks: [UUID: String] = [:]
+        var original = "", managed = "", blocks: [UUID: String] = [:]
         var open: UUID?, block = ""
         var remainder = text[...]
         while !remainder.isEmpty {
@@ -86,19 +95,22 @@ enum HostsSupport {
                     original.removeLast()
                 }
                 open = id; block = ""
+                managed += line
             } else if line.hasPrefix(suffix) {
                 guard let id = open,
                       line == suffix + id.uuidString + "\n" else { throw HostsFailure.malformed }
                 blocks[id] = block; open = nil
+                managed += line
             } else if line.hasPrefix("# >>> Vorssaint") || line.hasPrefix("# <<< Vorssaint") {
                 // Partial or edited boundary markers must never become deletable text.
                 throw HostsFailure.malformed
             } else if open != nil {
                 block += line
+                managed += line
             } else { original += line }
         }
         guard open == nil else { throw HostsFailure.malformed }
-        return Document(original: original, blocks: blocks)
+        return Document(original: original, blocks: blocks, managed: managed)
     }
     static func render(original: String, profiles: [HostsProfile]) throws -> String {
         try validate(profiles)
